@@ -1,5 +1,5 @@
 class Item {
-    String tipo; // "produto" ou "servico"
+    String tipo; 
     double precoBase;
     String descricao;
     List<Imposto> impostos = new ArrayList<>();
@@ -17,7 +17,7 @@ class Item {
             impostos.add(new IPI());
         } else if (tipo.equals("servico")) {
             impostos.add(new ISS());
-            impostos.add(new ICMS()); // Supondo que serviços também pagam ICMS
+            impostos.add(new ICMS()); 
         }
     }
 
