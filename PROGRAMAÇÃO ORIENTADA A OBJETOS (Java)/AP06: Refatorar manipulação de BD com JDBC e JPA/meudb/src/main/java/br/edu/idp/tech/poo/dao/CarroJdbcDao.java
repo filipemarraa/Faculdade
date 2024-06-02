@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class CarroJdbcDao {
+public class CarroJdbcDao implements PersistenciaCarro {
 
     private Connection conexao;
 
