@@ -9,7 +9,7 @@ import jakarta.persistence.Persistence;
 import java.util.List;
 
 
-public class CarroJpaDao {
+public class CarroJpaDao implements PersistenciaCarro {
 
     private EntityManager entityManager;
 
