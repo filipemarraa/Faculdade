@@ -1,0 +1,36 @@
+Roteiro do Vídeo
+1. Resumo da Linguagem (25% do tempo)
+
+Origens:
+Quem: Objective-C foi desenvolvido por Brad Cox e Tom Love.
+Onde: Nos Estados Unidos.
+Quando: Criada no início dos anos 1980, com a primeira versão pública em 1984.
+Influências:
+Influenciada por: Objective-C é uma extensão do C e foi influenciada principalmente pelo Smalltalk, uma linguagem orientada a objetos.
+Influências em outras linguagens:
+Influenciou: Objective-C influenciou o desenvolvimento de Swift, a linguagem mais moderna da Apple, criada para substituir gradualmente Objective-C.
+Adoção:
+Adoção: Objective-C se tornou a principal linguagem para desenvolvimento de aplicativos para macOS e iOS até a introdução do Swift em 2014. A Apple adotou e promoveu fortemente o uso do Objective-C por muitos anos.
+2. Suporte ao Paradigma Orientado a Objetos (25% do tempo)
+
+Classes e Objetos: Objective-C permite a criação de classes e objetos, onde cada objeto é uma instância de uma classe.
+Herança: Suporta herança, permitindo que uma classe herde propriedades e métodos de outra.
+Encapsulamento: Usa encapsulamento para proteger dados, permitindo o acesso e a modificação apenas através de métodos específicos.
+Polimorfismo: Permite que diferentes classes respondam a métodos da mesma maneira ou de formas distintas, dependendo de sua implementação.
+Mensagens: Em Objective-C, ao contrário de chamadas de métodos diretas, usa-se um sistema de mensagens semelhante ao Smalltalk, onde os métodos são chamados enviando mensagens aos objetos.
+3. Programa de Exemplo (50% do tempo)
+
+Explicação do Código:
+
+Explique como o projeto está estruturado.
+Destaque as classes principais (ViewController) e seus métodos.
+Mostre como a tabela é configurada e como o CRUD é implementado com o uso de arrays mutáveis e alertas.
+Demonstração Explicativa do Salto Código -> Programa:
+
+Mostre como o código é escrito no Xcode.
+Compile o código e execute-o no simulador.
+Explique como o simulador é usado para testar o aplicativo.
+Demonstração do Funcionamento:
+
+Execute o aplicativo no simulador e demonstre como adicionar, editar e excluir contatos.
+Mostre como o aplicativo responde às ações do usuário, com foco nas operações CRUD.
