@@ -73,7 +73,6 @@ O código principal do aplicativo está dividido nos seguintes arquivos:
 
 - `ViewController.h` - Declara as propriedades e métodos da `ViewController`.
 - `ViewController.m` - Implementa a lógica para o CRUD de contatos.
-- `Main.storyboard` - Define a interface visual do aplicativo.
 
 ## **Licença**
 
