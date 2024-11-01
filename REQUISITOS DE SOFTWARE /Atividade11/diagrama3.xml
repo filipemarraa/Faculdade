@@ -4,40 +4,39 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        
-        <!-- Membro da Equipe (Linha de Vida) -->
+
+        <!-- Linhas de Vida -->
         <mxCell id="2" value="Membro da Equipe" style="shape=umlActor;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="80" y="50" width="50" height="100" as="geometry" />
         </mxCell>
         <mxCell id="3" value="" style="shape=line;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="105" y="150" width="1" height="500" as="geometry" />
         </mxCell>
-        
-        <!-- Sistema (Linha de Vida) -->
+
         <mxCell id="4" value="Sistema" style="shape=rectangle;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="280" y="50" width="80" height="30" as="geometry" />
         </mxCell>
         <mxCell id="5" value="" style="shape=line;dashed=1;" vertex="1" parent="1">
           <mxGeometry x="320" y="150" width="1" height="500" as="geometry" />
         </mxCell>
-        
+
         <!-- Interações -->
-        
+
         <!-- Selecionar Tarefa -->
         <mxCell id="6" value="Seleciona Tarefa" edge="1" parent="1" source="2" target="4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
+
         <!-- Atualizar Status -->
         <mxCell id="7" value="Atualiza Status" edge="1" parent="1" source="2" target="4">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
+
         <!-- Confirmação de Atualização -->
         <mxCell id="8" value="Confirmação de Atualização" edge="1" parent="1" source="4" target="2">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        
+
         <!-- Enviar Notificação -->
         <mxCell id="9" value="Enviar Notificação" edge="1" parent="1" source="4" target="2">
           <mxGeometry relative="1" as="geometry" />
