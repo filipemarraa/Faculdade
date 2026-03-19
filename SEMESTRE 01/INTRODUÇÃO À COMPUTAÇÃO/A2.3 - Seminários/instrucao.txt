@@ -1,0 +1,19 @@
+Este item refere-se à atividade de seminários que serão realizados a partir do dia 26/06 e corresponde a 1/3 da nota da avaliação do segundo semestre.
+
+Os tópicos do seminário serão os seguintes:
+Redes de Computadores e Internet (Grupo 2): classificações das redes, modelo em camadas, a arquitetura da internet, o modelo cliente-servidor;
+
+Para a apresentação, deverão se basear no conteúdo constante do livro da disciplina (Introdução a Computação - Glen), no que houver interseção com os tópicos gerais de cada grupo;
+Deverá, necessariamente, ser utilizada no mínimo outra referência (outro livro) para fundamentar os slides (as referências utilizadas deverão estar ao fim dos slides);
+Cada grupo deverá apresentar conteúdo que satisfaça os sub-tópicos (ao menos superficialmente) e estruturar a apresentação de forma que sejam apresentados os tópicos de forma didática (se necessário explicar conceitos preliminares para abordar os tópicos);
+Cada grupo deverá apresentar aplicações da área e como o conteúdo apresentado se encaixa na aplicação;
+Cada grupo terá 15 minutos de apresentação. Será tolerada uma variação de -+ 3 min;
+Todos os integrantes do grupo serão avaliados durante a apresentação e devem apresentar domínio do conteúdo;
+Serão realizadas perguntas, em uma janela de 5 minutos, com revezamento de grupos. Será utilizada uma sequencia aleatória de grupos para fazerem perguntas ao grupo que está apresentado.
+Critérios de análise (os grupos deverão se basear nisso para estruturar as apresentações):
+
+Estruturação dos slides: não devem conter textos e parágrafos (apenas tópicos com pequenas frases, desenhos, gráficos, esquemas, imagens, dentre outros recursos gráficos)
+Apresentação: os slides devem ser utilizados como guia/apoio para quem está apresentando o seminário (evidentemente, se o aluno precisar ler algo, deve estar nos slides); será considerada a coerência, as transições da apresentação pelos integrantes e o domínio da apresentação do conteúdo por TODOS os integrantes como um todo; 
+Conteúdo apresentado: os slides e a apresentação devem contemplar os principais elementos a respeito do tópico em questão;
+Adequação ao tempo: os grupos serão penalizados com relação ao excedente de tempo. Se os alunos estourarem o tempo, a apresentação será interrompida.
+Os tópicos serão sorteados em aula para cada grupo (FOI FEITO NA AULA DO DIA 19/06/2023).
