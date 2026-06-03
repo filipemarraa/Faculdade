@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Teste Rápido 02 - SQL Injection vs Prepared Statements</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #1a1a2e; color: #eee; min-height: 100vh; padding: 30px 20px; }
+  h1 { text-align: center; font-size: 22px; margin-bottom: 4px; color: #fff; }
+  .sub { text-align: center; color: #aaa; font-size: 13px; margin-bottom: 28px; }
+
+  .cards { display: flex; gap: 24px; max-width: 860px; margin: 0 auto; flex-wrap: wrap; }
+  .card { flex: 1; min-width: 300px; background: #16213e; border-radius: 12px; padding: 24px; }
+  .card.v { border-top: 4px solid #e74c3c; }
+  .card.s { border-top: 4px solid #2ecc71; }
+
+  h2 { font-size: 16px; margin-bottom: 14px; }
+  .card.v h2 { color: #e74c3c; }
+  .card.s h2 { color: #2ecc71; }
+
+  label { display: block; font-size: 12px; color: #aaa; margin-bottom: 4px; }
+  input { width: 100%; padding: 9px 12px; background: #0f3460; border: 1px solid #333; border-radius: 6px;
+          color: #fff; font-size: 14px; margin-bottom: 12px; }
+  input:focus { outline: none; border-color: #3498db; }
+
+  button { width: 100%; padding: 11px; border: none; border-radius: 6px; font-size: 14px;
+           font-weight: bold; cursor: pointer; color: #fff; }
+  .card.v button { background: #e74c3c; }
+  .card.v button:hover { background: #c0392b; }
+  .card.s button { background: #2ecc71; color: #111; }
+  .card.s button:hover { background: #27ae60; }
+
+  .sql-box { margin-top: 14px; background: #0a0a1a; border-radius: 6px; padding: 12px;
+             font-family: monospace; font-size: 12px; line-height: 1.7; display: none; }
+  .sql-box .lbl { color: #f39c12; font-size: 11px; font-weight: bold; margin-bottom: 6px; display: block; }
+  .inject { color: #ff5555; font-weight: bold; }
+  .safe-q { color: #2ecc71; font-weight: bold; }
+  .safe-b { color: #3498db; }
+
+  .result { margin-top: 12px; padding: 12px; border-radius: 6px; font-size: 14px; display: none; }
+  .ok  { background: #1a4731; border: 1px solid #2ecc71; color: #2ecc71; }
+  .err { background: #4a1a1a; border: 1px solid #e74c3c; color: #e74c3c; }
+
+  .dica { background: #2c2c00; border: 1px solid #f39c12; border-radius: 6px;
+          padding: 10px 14px; font-size: 12px; color: #f39c12; margin-top: 14px; }
+  .dica strong { display: block; margin-bottom: 6px; }
+  .dica code { background: #111; padding: 2px 6px; border-radius: 3px; }
+
+  .code-block { margin-top: 16px; background: #0a0a1a; border-radius: 6px; padding: 14px;
+                font-family: monospace; font-size: 12px; line-height: 1.8; }
+  .c-red  { color: #ff5555; }
+  .c-grn  { color: #50fa7b; }
+  .c-blu  { color: #8be9fd; }
+  .c-yel  { color: #f1fa8c; }
+  .c-cmt  { color: #6272a4; }
+
+  footer { text-align: center; margin-top: 34px; color: #555; font-size: 12px; }
+</style>
+</head>
+<body>
+
+<h1>🔐 Teste Rápido 02</h1>
+<p class="sub">Aula 18 — SQL Injection (Vulnerável) vs Prepared Statements (Seguro)</p>
+
+<div class="cards">
+
+  <!-- VULNERÁVEL -->
+  <div class="card v">
+    <h2>⚠️ Sistema VULNERÁVEL</h2>
+
+    <label>Usuário:</label>
+    <input id="v-user" type="text" placeholder="tente: ' OR '1'='1' --">
+    <label>Senha:</label>
+    <input id="v-pass" type="text" placeholder="qualquer coisa">
+    <button onclick="loginVulneravel()">Entrar (Vulnerável)</button>
+
+    <div class="dica">
+      <strong>🧪 Ataque SQL Injection:</strong>
+      Usuário: <code>' OR '1'='1' --</code><br>
+      Senha: <code>abc</code>
+    </div>
+
+    <div class="sql-box" id="sql-v">
+      <span class="lbl">⚙️ SQL gerado pela aplicação:</span>
+      <span id="sql-v-txt"></span>
+    </div>
+    <div class="result" id="res-v"></div>
+
+    <div class="code-block">
+      <span class="c-cmt">// ❌ Concatenação direta — VULNERÁVEL</span><br>
+      <span class="c-yel">$sql</span> = <span class="c-red">"SELECT * FROM usuarios</span><br>
+      &nbsp;&nbsp;<span class="c-red">WHERE usuario = '<b>$usuario</b>'</span><br>
+      &nbsp;&nbsp;<span class="c-red">AND senha = '<b>$senha</b>'"</span>;<br>
+      <span class="c-blu">$conn</span>-><span class="c-grn">query</span>(<span class="c-yel">$sql</span>);
+    </div>
+  </div>
+
+  <!-- SEGURO -->
+  <div class="card s">
+    <h2>✅ Sistema SEGURO</h2>
+
+    <label>Usuário:</label>
+    <input id="s-user" type="text" placeholder="admin">
+    <label>Senha:</label>
+    <input id="s-pass" type="text" placeholder="senha123">
+    <button onclick="loginSeguro()">Entrar (Seguro)</button>
+
+    <div class="dica" style="border-color:#2ecc71;background:#0a2a0a;color:#2ecc71;">
+      <strong>✅ Tente o mesmo ataque:</strong>
+      Usuário: <code style="background:#111">' OR '1'='1' --</code><br>
+      Será bloqueado! Login válido: <code style="background:#111">admin / senha123</code>
+    </div>
+
+    <div class="sql-box" id="sql-s">
+      <span class="lbl">⚙️ Prepared Statement gerado:</span>
+      <span id="sql-s-txt"></span>
+    </div>
+    <div class="result" id="res-s"></div>
+
+    <div class="code-block">
+      <span class="c-cmt">// ✅ Prepared Statement — SEGURO</span><br>
+      <span class="c-yel">$stmt</span> = <span class="c-blu">$conn</span>-><span class="c-grn">prepare</span>(<br>
+      &nbsp;&nbsp;<span class="c-grn">"SELECT * FROM usuarios</span><br>
+      &nbsp;&nbsp;<span class="c-grn">&nbsp;WHERE usuario=<b>?</b> AND senha=<b>?</b>"</span><br>
+      );<br>
+      <span class="c-yel">$stmt</span>-><span class="c-grn">bind_param</span>(<span class="c-red">"ss"</span>, <span class="c-blu">$usuario</span>, <span class="c-blu">$senha</span>);<br>
+      <span class="c-yel">$stmt</span>-><span class="c-grn">execute</span>();
+    </div>
+  </div>
+
+</div>
+
+<footer>Filipe Marra — Banco de Dados — Teste Rápido 02</footer>
+
+<script>
+// Banco simulado em memória
+const usuarios = [
+  { id: 1, usuario: 'admin',     senha: 'senha123' },
+  { id: 2, usuario: 'filipe',    senha: 'minha_senha' },
+  { id: 3, usuario: 'professor', senha: 'aula18' }
+];
+
+function esc(str) {
+  return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function loginVulneravel() {
+  const usuario = document.getElementById('v-user').value;
+  const senha   = document.getElementById('v-pass').value;
+
+  // Monta o SQL como a aplicação vulnerável faria
+  const sqlGerado = `SELECT * FROM usuarios WHERE usuario = '${usuario}' AND senha = '${senha}'`;
+
+  // Mostra o SQL gerado
+  const sqlBox = document.getElementById('sql-v');
+  sqlBox.style.display = 'block';
+  document.getElementById('sql-v-txt').innerHTML =
+    `SELECT * FROM usuarios WHERE usuario = '<span class="inject">${esc(usuario)}</span>' AND senha = '<span class="inject">${esc(senha)}</span>'`;
+
+  const res = document.getElementById('res-v');
+  res.style.display = 'block';
+
+  // Simula SQL Injection: se o input contém ' OR ... ignora a senha
+  const injection = usuario.includes("'") || senha.includes("'") || usuario.toLowerCase().includes(' or ');
+
+  if (injection) {
+    // Ataque funcionou — retorna o primeiro usuário
+    const u = usuarios[0];
+    res.className = 'result ok';
+    res.innerHTML = `🚨 <b>ATAQUE FUNCIONOU!</b> Logado como: <b>${u.usuario}</b><br>Entrou sem saber a senha!`;
+  } else {
+    const encontrado = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+    if (encontrado) {
+      res.className = 'result ok';
+      res.innerHTML = `✅ Login realizado como: <b>${encontrado.usuario}</b>`;
+    } else {
+      res.className = 'result err';
+      res.textContent = '❌ Usuário ou senha inválidos.';
+    }
+  }
+}
+
+function loginSeguro() {
+  const usuario = document.getElementById('s-user').value;
+  const senha   = document.getElementById('s-pass').value;
+
+  // Mostra o Prepared Statement (os parâmetros são separados do SQL)
+  const sqlBox = document.getElementById('sql-s');
+  sqlBox.style.display = 'block';
+  document.getElementById('sql-s-txt').innerHTML =
+    `<span class="safe-q">prepare:</span> SELECT * FROM usuarios WHERE usuario = <b>?</b> AND senha = <b>?</b><br>` +
+    `<span class="safe-b">bind_param:</span> param1 = "${esc(usuario)}", param2 = "${esc(senha)}"<br>` +
+    `<span class="c-cmt">→ Injeção impossível: parâmetros nunca viram SQL!</span>`;
+
+  const res = document.getElementById('res-s');
+  res.style.display = 'block';
+
+  // Com Prepared Statement: compara exatamente, sem interpretar SQL
+  const encontrado = usuarios.find(u => u.usuario === usuario && u.senha === senha);
+
+  if (encontrado) {
+    res.className = 'result ok';
+    res.innerHTML = `✅ Login realizado como: <b>${encontrado.usuario}</b>`;
+  } else {
+    res.className = 'result err';
+    res.innerHTML = `🔒 <b>Ataque bloqueado!</b> Usuário ou senha inválidos.`;
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Rápido 02 - SQL Injection vs Prepared Statements</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; padding: 30px 20px; }
+        h1 { text-align: center; color: #222; margin-bottom: 8px; }
+        .subtitle { text-align: center; color: #666; margin-bottom: 30px; font-size: 14px; }
+
+        .cards {
+            display: flex;
+            gap: 30px;
+            max-width: 900px;
+            margin: 0 auto;
+            flex-wrap: wrap;
+        }
+
+        .card {
+            flex: 1;
+            min-width: 300px;
+            background: white;
+            border-radius: 10px;
+            padding: 28px;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+        }
+
+        .card.vulneravel { border-top: 5px solid #e74c3c; }
+        .card.seguro     { border-top: 5px solid #27ae60; }
+
+        .card h2 { font-size: 18px; margin-bottom: 6px; }
+        .card.vulneravel h2 { color: #e74c3c; }
+        .card.seguro h2     { color: #27ae60; }
+
+        .badge {
+            display: inline-block;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-bottom: 16px;
+        }
+        .badge-danger  { background: #fdecea; color: #c0392b; }
+        .badge-success { background: #eafaf1; color: #1e8449; }
+
+        label { display: block; font-size: 13px; color: #555; margin-bottom: 4px; }
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            margin-bottom: 14px;
+        }
+        input:focus { outline: none; border-color: #3498db; }
+
+        button {
+            width: 100%;
+            padding: 11px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            font-weight: bold;
+            color: white;
+        }
+        .card.vulneravel button { background: #e74c3c; }
+        .card.vulneravel button:hover { background: #c0392b; }
+        .card.seguro button     { background: #27ae60; }
+        .card.seguro button:hover { background: #1e8449; }
+
+        .resultado {
+            margin-top: 16px;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            display: none;
+        }
+        .resultado.sucesso { background: #eafaf1; color: #1e8449; border: 1px solid #a9dfbf; }
+        .resultado.erro    { background: #fdecea; color: #c0392b; border: 1px solid #f1948a; }
+
+        .dica {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 13px;
+            color: #856404;
+            margin-top: 16px;
+        }
+        .dica strong { display: block; margin-bottom: 4px; }
+        .dica code {
+            background: #fff;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .codigo {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            border-radius: 6px;
+            padding: 14px;
+            font-family: monospace;
+            font-size: 12px;
+            margin-top: 16px;
+            overflow-x: auto;
+            line-height: 1.6;
+        }
+        .codigo .vulneravel-line { color: #f48771; }
+        .codigo .seguro-line     { color: #b5cea8; }
+        .codigo .comment         { color: #6a9955; }
+
+        .sql-display {
+            margin-top: 14px;
+            background: #2d2d2d;
+            color: #f8f8f2;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 12px;
+            display: none;
+        }
+        .sql-display .label { color: #ff79c6; font-weight: bold; margin-bottom: 4px; display: block; }
+        .sql-display .injection { color: #ff5555; }
+
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #999;
+            font-size: 13px;
+        }
+    </style>
+</head>
+<body>
+
+<h1>🔐 Teste Rápido 02</h1>
+<p class="subtitle">Demonstração: SQL Injection (Vulnerável) vs Prepared Statements (Seguro)</p>
+
+<div class="cards">
+
+    <!-- SISTEMA VULNERÁVEL -->
+    <div class="card vulneravel">
+        <h2>⚠️ Sistema Vulnerável</h2>
+        <span class="badge badge-danger">SEM Prepared Statements</span>
+
+        <form id="formVulneravel">
+            <label>Usuário:</label>
+            <input type="text" id="v-usuario" placeholder="ex: admin">
+
+            <label>Senha:</label>
+            <input type="text" id="v-senha" placeholder="qualquer coisa">
+
+            <button type="submit">Entrar (Vulnerável)</button>
+        </form>
+
+        <div class="dica">
+            <strong>🧪 Teste o ataque SQL Injection:</strong>
+            Usuário: <code>' OR '1'='1' -- </code><br>
+            Senha: <code>qualquer</code><br><br>
+            Isso injeta SQL e bypassa o login!
+        </div>
+
+        <div class="sql-display" id="sql-gerado">
+            <span class="label">SQL gerado pela aplicação:</span>
+            <span id="sql-texto"></span>
+        </div>
+
+        <div class="resultado" id="res-vulneravel"></div>
+
+        <div class="codigo">
+            <span class="comment">// ❌ Código vulnerável (concatenação direta)</span><br>
+            <span class="vulneravel-line">$sql = "SELECT * FROM usuarios_login</span><br>
+            <span class="vulneravel-line">&nbsp;&nbsp;&nbsp;&nbsp;WHERE usuario = '$usuario'</span><br>
+            <span class="vulneravel-line">&nbsp;&nbsp;&nbsp;&nbsp;AND senha = '$senha'";</span><br>
+            <span class="vulneravel-line">$result = $conn->query($sql);</span>
+        </div>
+    </div>
+
+    <!-- SISTEMA SEGURO -->
+    <div class="card seguro">
+        <h2>✅ Sistema Seguro</h2>
+        <span class="badge badge-success">COM Prepared Statements</span>
+
+        <form id="formSeguro">
+            <label>Usuário:</label>
+            <input type="text" id="s-usuario" placeholder="ex: admin">
+
+            <label>Senha:</label>
+            <input type="text" id="s-senha" placeholder="senha123">
+
+            <button type="submit">Entrar (Seguro)</button>
+        </form>
+
+        <div class="dica">
+            <strong>✅ Tente o mesmo ataque:</strong>
+            Usuário: <code>' OR '1'='1' -- </code><br>
+            Senha: <code>qualquer</code><br><br>
+            O Prepared Statement bloqueará o ataque!
+        </div>
+
+        <div class="resultado" id="res-seguro"></div>
+
+        <div class="codigo">
+            <span class="comment">// ✅ Código seguro (Prepared Statement)</span><br>
+            <span class="seguro-line">$stmt = $conn->prepare(</span><br>
+            <span class="seguro-line">&nbsp;&nbsp;"SELECT * FROM usuarios_login</span><br>
+            <span class="seguro-line">&nbsp;&nbsp;&nbsp;WHERE usuario = ? AND senha = ?"</span><br>
+            <span class="seguro-line">);</span><br>
+            <span class="seguro-line">$stmt->bind_param("ss", $usuario, $senha);</span><br>
+            <span class="seguro-line">$stmt->execute();</span>
+        </div>
+    </div>
+
+</div>
+
+<footer>Teste Rápido 02 — Aula 18: Conceitos de Segurança em Sistemas Web</footer>
+
+<script>
+document.getElementById('formVulneravel').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const usuario = document.getElementById('v-usuario').value;
+    const senha   = document.getElementById('v-senha').value;
+
+    // Mostra o SQL que seria gerado
+    const sqlGerado = document.getElementById('sql-gerado');
+    const sqlTexto  = document.getElementById('sql-texto');
+    sqlGerado.style.display = 'block';
+    sqlTexto.innerHTML = `SELECT * FROM usuarios_login WHERE usuario = '<span class="injection">${escapeHtml(usuario)}</span>' AND senha = '<span class="injection">${escapeHtml(senha)}</span>'`;
+
+    const formData = new FormData();
+    formData.append('usuario', usuario);
+    formData.append('senha', senha);
+
+    fetch('login_vulneravel.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('res-vulneravel');
+            el.style.display = 'block';
+            if (data.sucesso) {
+                el.className = 'resultado sucesso';
+                el.innerHTML = `✅ Login realizado como: <strong>${escapeHtml(data.usuario)}</strong><br>⚠️ Ataque funcionou!`;
+            } else {
+                el.className = 'resultado erro';
+                el.textContent = '❌ ' + data.erro;
+            }
+        });
+});
+
+document.getElementById('formSeguro').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const usuario = document.getElementById('s-usuario').value;
+    const senha   = document.getElementById('s-senha').value;
+
+    const formData = new FormData();
+    formData.append('usuario', usuario);
+    formData.append('senha', senha);
+
+    fetch('login_seguro.php', { method: 'POST', body: formData })
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('res-seguro');
+            el.style.display = 'block';
+            if (data.sucesso) {
+                el.className = 'resultado sucesso';
+                el.innerHTML = `✅ Login realizado como: <strong>${escapeHtml(data.usuario)}</strong>`;
+            } else {
+                el.className = 'resultado erro';
+                el.textContent = '🔒 ' + data.erro;
+            }
+        });
+});
+
+function escapeHtml(str) {
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+
+</body>
+</html>

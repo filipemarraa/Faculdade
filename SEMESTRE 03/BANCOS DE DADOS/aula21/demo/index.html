@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Soft Delete Demo - Teste Rápido 04</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; max-width: 750px; margin: 40px auto; padding: 0 20px; background: #f9f9f9; color: #333; }
+        h1 { font-size: 1.4em; color: #1565C0; margin-bottom: 4px; }
+        .subtitle { font-size: 0.85em; color: #888; margin-bottom: 24px; }
+        h2 { font-size: 1.1em; margin: 24px 0 10px; color: #333; }
+
+        /* Form */
+        .card { background: white; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,0.1); margin-bottom: 24px; }
+        label { font-size: 0.9em; font-weight: bold; display: block; margin-bottom: 4px; }
+        input { width: 100%; padding: 8px 10px; margin-bottom: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 0.95em; }
+        input:focus { outline: none; border-color: #1565C0; }
+
+        /* Buttons */
+        .btn { padding: 8px 16px; border: none; border-radius: 5px; cursor: pointer; font-size: 0.85em; font-weight: bold; }
+        .btn-green  { background: #4CAF50; color: white; }
+        .btn-red    { background: #e53935; color: white; }
+        .btn-orange { background: #FB8C00; color: white; }
+        .btn:hover { opacity: 0.85; }
+
+        /* Table */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+        th { background: #1565C0; color: white; padding: 10px; text-align: left; font-size: 0.9em; }
+        td { padding: 9px 10px; font-size: 0.9em; border-bottom: 1px solid #f0f0f0; }
+        tr:last-child td { border-bottom: none; }
+        .empty-row td { text-align: center; color: #aaa; font-style: italic; padding: 16px; }
+
+        /* Lixeira */
+        .lixeira-section { margin-top: 36px; border-top: 2px dashed #e53935; padding-top: 20px; }
+        .lixeira-section h2 { color: #e53935; }
+        .deleted-at { font-size: 0.82em; color: #999; }
+
+        /* Msg */
+        #msg { margin: 10px 0; font-weight: bold; font-size: 0.95em; min-height: 20px; }
+
+        /* SQL Log (para mostrar ao professor) */
+        .sql-log { margin-top: 36px; border-top: 2px solid #333; padding-top: 16px; }
+        .sql-log h2 { color: #333; margin-bottom: 8px; }
+        .sql-log p { font-size: 0.82em; color: #666; margin-bottom: 8px; }
+        #logBox { background: #1e1e1e; color: #80CBC4; font-family: monospace; font-size: 0.85em;
+                  padding: 14px; border-radius: 6px; max-height: 220px; overflow-y: auto; }
+        #logBox div { margin-bottom: 4px; }
+        #logBox .log-insert { color: #A5D6A7; }
+        #logBox .log-update { color: #FFE082; }
+        #logBox .log-select { color: #90CAF9; }
+        #logBox .log-restore { color: #CE93D8; }
+        .badge-sql { display: inline-block; background: #333; color: #80CBC4; font-size: 0.75em;
+                     padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: middle; }
+    </style>
+</head>
+<body>
+
+<h1>Cadastro de Usuários — Soft Delete <span class="badge-sql">Teste Rápido 04</span></h1>
+<p class="subtitle">Simulação MVC com localStorage · Conceito: <strong>deleted_at</strong> em vez de DELETE</p>
+
+<div class="card">
+    <h2>Cadastrar Usuário</h2>
+    <label>Nome:</label>
+    <input type="text" id="nome" placeholder="Ex: João Silva">
+    <label>E-mail:</label>
+    <input type="email" id="email" placeholder="Ex: joao@email.com">
+    <label>Nascimento:</label>
+    <input type="date" id="nascimento">
+    <button class="btn btn-green" onclick="salvar()">Cadastrar</button>
+    <p id="msg"></p>
+</div>
+
+<h2>Usuários Ativos</h2>
+<table>
+    <thead>
+        <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Nascimento</th><th>Ação</th></tr>
+    </thead>
+    <tbody id="tabela"></tbody>
+</table>
+
+<div class="lixeira-section">
+    <h2>🗑️ Lixeira — Soft Delete</h2>
+    <p style="font-size:0.88em;color:#666;margin-bottom:10px">
+        Os registros abaixo <strong>ainda existem no banco</strong>, apenas com <code>deleted_at</code> preenchido.
+    </p>
+    <table>
+        <thead>
+            <tr><th>ID</th><th>Nome</th><th>E-mail</th><th>Nascimento</th><th>Deletado em</th><th>Ação</th></tr>
+        </thead>
+        <tbody id="tabelaDeletados"></tbody>
+    </table>
+</div>
+
+<!-- SQL Log para demonstrar ao professor -->
+<div class="sql-log">
+    <h2>📋 Log SQL Simulado</h2>
+    <p>Cada ação gera o SQL equivalente que seria executado no banco de dados real.</p>
+    <div id="logBox"></div>
+</div>
+
+<script>
+// ─── "Banco de dados" simulado no localStorage ────────────────────────────────
+function getDB() {
+    return JSON.parse(localStorage.getItem('usuarios_db') || '[]');
+}
+function saveDB(data) {
+    localStorage.setItem('usuarios_db', JSON.stringify(data));
+}
+function getNextId() {
+    const db = getDB();
+    return db.length ? Math.max(...db.map(u => u.id)) + 1 : 1;
+}
+
+// ─── Log SQL ──────────────────────────────────────────────────────────────────
+function log(sql, tipo) {
+    const box = document.getElementById('logBox');
+    const div = document.createElement('div');
+    div.className = 'log-' + tipo;
+    const now = new Date().toLocaleTimeString();
+    div.textContent = `[${now}] ${sql}`;
+    box.prepend(div);
+}
+
+// ─── Model (simula UsuarioModel.php) ─────────────────────────────────────────
+const Model = {
+    listarAtivos() {
+        log("SELECT * FROM usuarios WHERE deleted_at IS NULL;", "select");
+        return getDB().filter(u => !u.deleted_at);
+    },
+    listarDeletados() {
+        log("SELECT * FROM usuarios WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC;", "select");
+        return getDB().filter(u => u.deleted_at);
+    },
+    salvar(nome, email, nascimento) {
+        const db = getDB();
+        const id = getNextId();
+        db.push({ id, nome, email, nascimento, deleted_at: null });
+        saveDB(db);
+        log(`INSERT INTO usuarios (nome, email, nascimento) VALUES ('${nome}', '${email}', '${nascimento}');`, "insert");
+        return id;
+    },
+    // ── Soft Delete: UPDATE com deleted_at ────────────────────────────────────
+    excluir(id) {
+        const db = getDB();
+        const u = db.find(u => u.id === id && !u.deleted_at);
+        if (!u) return false;
+        u.deleted_at = new Date().toLocaleString('pt-BR');
+        saveDB(db);
+        log(`UPDATE usuarios SET deleted_at = NOW() WHERE id = ${id};  -- ⚠️ NÃO é um DELETE!`, "update");
+        return true;
+    },
+    restaurar(id) {
+        const db = getDB();
+        const u = db.find(u => u.id === id && u.deleted_at);
+        if (!u) return false;
+        u.deleted_at = null;
+        saveDB(db);
+        log(`UPDATE usuarios SET deleted_at = NULL WHERE id = ${id};`, "restore");
+        return true;
+    }
+};
+
+// ─── Controller (simula UsuarioController.php) ────────────────────────────────
+function salvar() {
+    const nome = document.getElementById('nome').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const nascimento = document.getElementById('nascimento').value;
+    if (!nome || !email || !nascimento) {
+        mostrarMsg('Preencha todos os campos.', 'red');
+        return;
+    }
+    Model.salvar(nome, email, nascimento);
+    mostrarMsg('Usuário cadastrado com sucesso!', 'green');
+    document.getElementById('nome').value = '';
+    document.getElementById('email').value = '';
+    document.getElementById('nascimento').value = '';
+    render();
+}
+
+function excluir(id) {
+    if (!confirm(`Excluir usuário ID ${id}? (Soft Delete — registro permanece no banco)`)) return;
+    Model.excluir(id);
+    mostrarMsg('Usuário movido para a lixeira (Soft Delete aplicado).', 'orange');
+    render();
+}
+
+function restaurar(id) {
+    Model.restaurar(id);
+    mostrarMsg('Usuário restaurado com sucesso!', 'purple');
+    render();
+}
+
+// ─── View (simula usuarios.php) ───────────────────────────────────────────────
+function render() {
+    const ativos = Model.listarAtivos();
+    const deletados = Model.listarDeletados();
+
+    const tabela = document.getElementById('tabela');
+    tabela.innerHTML = ativos.length
+        ? ativos.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${u.nome}</td>
+                <td>${u.email}</td>
+                <td>${u.nascimento}</td>
+                <td><button class="btn btn-red" onclick="excluir(${u.id})">Excluir</button></td>
+            </tr>`).join('')
+        : '<tr class="empty-row"><td colspan="5">Nenhum usuário ativo</td></tr>';
+
+    const tabDel = document.getElementById('tabelaDeletados');
+    tabDel.innerHTML = deletados.length
+        ? deletados.map(u => `
+            <tr>
+                <td>${u.id}</td>
+                <td>${u.nome}</td>
+                <td>${u.email}</td>
+                <td>${u.nascimento}</td>
+                <td class="deleted-at">${u.deleted_at}</td>
+                <td><button class="btn btn-orange" onclick="restaurar(${u.id})">Restaurar</button></td>
+            </tr>`).join('')
+        : '<tr class="empty-row"><td colspan="6">Lixeira vazia</td></tr>';
+}
+
+function mostrarMsg(txt, cor) {
+    const el = document.getElementById('msg');
+    el.style.color = cor;
+    el.textContent = txt;
+    setTimeout(() => el.textContent = '', 3000);
+}
+
+// ─── Init ─────────────────────────────────────────────────────────────────────
+// Pré-popula com dados de exemplo se banco estiver vazio
+if (getDB().length === 0) {
+    Model.salvar('Maria Silva', 'maria@email.com', '1995-03-15');
+    Model.salvar('João Souza', 'joao@email.com', '1990-07-22');
+    Model.salvar('Ana Lima', 'ana@email.com', '2000-11-01');
+}
+render();
+</script>
+
+</body>
+</html>
